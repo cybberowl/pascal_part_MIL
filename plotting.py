@@ -5,7 +5,7 @@ def plot_examples(X,Y, k = 5, class_content = None, decomposed = False):
     # X and Y are batches from data gen BS x C x H x W
     rows = 2
     if decomposed:
-        Y_list = decompose_mask(Y,class_content)
+        Y_list = decompose_mask(Y.to('cpu').detach(),class_content)
         rows = rows + len(Y_list) - 1
     for i in range(k):
         plt.subplot(rows, k, i+1)
@@ -35,7 +35,7 @@ def plot_examples_learning(X,true_mask, predicted_masks, k = 3, class_content = 
     rows = k
     cols = 3
     if decomposed:
-        Y_list = decompose_mask(true_mask,class_content)
+        Y_list = decompose_mask(true_mask.to('cpu').detach(),class_content)
         cols = cols + 2*len(Y_list) - 2
     for i in range(k):
         plt.subplot(rows, cols, i*cols+1)
