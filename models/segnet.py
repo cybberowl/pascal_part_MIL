@@ -1,5 +1,6 @@
 from .conv_block import create_convolution_block
 import torch.nn as nn
+from .base import get_config_from_locals
 import numpy as np
 
 class SegNetEncoder(nn.Module):
@@ -14,6 +15,7 @@ class SegNetEncoder(nn.Module):
                 act_class):
 
         super().__init__()
+
         self.conv_blocks = nn.ModuleList()
         self.poolings = nn.ModuleList()
 
@@ -88,6 +90,7 @@ class SegNet(nn.Module):
                  enable_batchnorm = True,
                  act_class = nn.ReLU):
         super().__init__()
+        self.config = get_config_from_locals(**locals())
 
         assert len(encoder_channels_array) == len(decoder_channels_array)
         assert np.allclose(encoder_channels_array[:-1],decoder_channels_array[:-1][::-1])

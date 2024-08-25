@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+from .base import get_config_from_locals
 from .conv_block import create_convolution_block
 
 class UNetEncoder(nn.Module):
@@ -14,6 +15,7 @@ class UNetEncoder(nn.Module):
                 act_class):
 
         super().__init__()
+
         self.conv_blocks = nn.ModuleList()
         self.poolings = nn.ModuleList()
 
@@ -95,6 +97,7 @@ class UNet(nn.Module):
                  enable_batchnorm = True,
                  act_class = nn.ReLU):
         super().__init__()
+        self.config = get_config_from_locals(**locals())
 
         self.Encoder = UNetEncoder(in_channels,
                                      channels_array,
