@@ -94,3 +94,7 @@ model_params:
   pool_kernel_size: 2
 resample: 2
 ```
+
+# Результаты
+
+TODO
