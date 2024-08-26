@@ -18,7 +18,7 @@ def get_experiment_params(model, opt, loss_fn, data):
     config['lr'] = opt.param_groups[0]['lr']
     config['batch_size'] = data.batch_size
     config['resample'] = data.dataset.resample
-    config['augmentations'] = [t.__name__ for t in data.dataset.transform] if data.dataset.transform else None
+    config['augmentations'] = [type(t).__name__ for t in data.dataset.transform] if data.dataset.transform else None
     config['loss'] = type(loss_fn).__name__
     if hasattr(loss_fn, 'base_loss_class'):
         config['base_loss'] = loss_fn.base_loss_class.__name__
