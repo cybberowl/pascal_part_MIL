@@ -75,7 +75,7 @@ def train(model, opt, loss_fn, class_selector, class_content, epochs, data, data
         model.eval() # testing mode
 
         X_val, Y_val = next(iter(data_val))
-        X_val, Y_val = X_val.to('cpu').detach(), Y_val.to('cpu').detach()
+        X_val, Y_val = X_val.to(device).detach(), Y_val.to(device).detach()
         Y_hat = class_selector(model(X_val))
 
         clear_output(wait=True)
