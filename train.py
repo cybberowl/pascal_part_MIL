@@ -44,7 +44,7 @@ def train_one_epoch(model, opt, loss_fn, data, device):
         avg_loss += loss.item() / len(data)
 
     return avg_loss
-        
+
 def train(model, opt, loss_fn, class_selector, class_content, epochs, data, data_val, experiment_name,ckpt_path, device):
 
     train_loss = []
@@ -95,4 +95,4 @@ def train(model, opt, loss_fn, class_selector, class_content, epochs, data, data
 
     pd.Series(train_loss, index = np.arange(1,epochs+1)).to_csv(path/'train_loss.csv')
 
-    return train_loss
+    return train_loss, path

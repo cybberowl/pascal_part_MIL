@@ -22,9 +22,9 @@ class HierarchicalMIoU:
 
         num = (outputs & labels).sum((1,2)) ### sum over BS x W x H
         denum = (outputs | labels).sum((1,2)) ### sum over BS x W x H
-        metric = (num+self.smooth) / (denum + self.smooth) ### smooth for numerical stability
+        metric = num / (denum + self.smooth) ### smooth for numerical stability
         metric = metric.mean() ### mean value over batch
-
+        
         return metric.item()
 
     def __call__(self, outputs: list, labels: torch.Tensor):
@@ -41,8 +41,12 @@ class HierarchicalMIoU:
         for i in range(self.n_levels):
             level = f'level_{i+1}'
             error[level] = 0.0
+            
             for j,key in enumerate(self.class_content[level]):
-                metric = self.iou((outputs[i].to('cpu').numpy()==j),(labels[i].to('cpu').numpy() == j))
+                classes = self.class_content[level][key]
+                class_ = j+1 if len(classes) > 1 else classes[0] ### on last level get original label
+                metric = self.iou((outputs[i].to('cpu').numpy()==class_),
+                                  (labels[i].to('cpu').numpy() == class_))
                 error[level+'_'+key] = metric
                 error[level] += metric
             error[level] /= len(self.class_content[level])

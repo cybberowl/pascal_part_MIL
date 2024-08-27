@@ -15,7 +15,7 @@ def decompose_mask(mask:torch.Tensor,class_content):
     res = []
     device = mask.device
     for level in sorted(class_content,key = lambda x: int(x.split('_')[1])):
-        new_mask = mask.clone().to(device)
+        new_mask = mask.clone().to(device) ### zeros remain zeros
         counter = 1
         for key, classes in class_content[level].items():
             ### counter is label for new class on mid levels

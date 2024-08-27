@@ -1,5 +1,9 @@
 import numpy as np
 from tqdm.notebook import tqdm
+from pathlib import Path
+from IPython.display import clear_output
+import torch
+
 
 def score_model(model, class_selector, metric, data,device):
 
@@ -36,3 +40,50 @@ def score_model(model, class_selector, metric, data,device):
         scores['std'][key] = np.sqrt(scores['std'][key]) ### std
 
     return scores
+
+
+def validate_epoch(model, loss_fn, data,device):
+    
+    avg_loss = 0.0
+
+    for X_batch, Y_batch in tqdm(data):
+
+        X_batch, Y_batch = X_batch.to(device).detach(), Y_batch.to(device).detach()
+        Y_pred = model(X_batch)
+        loss = loss_fn(Y_pred,Y_batch)
+
+        avg_loss += loss.item() / len(data)
+
+    return avg_loss
+
+
+def validate(model, ckpt_path, loss_fn, class_selectors, class_content, metric, data, device):
+    
+    models = [p for p in Path(ckpt_path).iterdir() if p.name.endswith('.ckpt')]
+    models = sorted(models, key = lambda x: int(x.name.split('.')[0].split('=')[1]))
+    
+    losses = []
+    scores = {type(selector).__name__:{} for selector in class_selectors}
+    for epoch, model_path in enumerate(models):
+        
+        clear_output(wait = True)
+        
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
+        
+        loss = validate_epoch(model, loss_fn, data,device)
+        losses.append(loss)
+        
+        print('epoch %d - loss: %f' % (epoch,loss))
+        
+        for selector in class_selectors:
+            score = score_model(model, selector, metric, data,device)['mean']
+            score = {key:score[key] for key in score if len(key.split('_')) == 2} ## only levels data
+            
+            for key in score:
+                if key not in scores[type(selector).__name__]:
+                    scores[type(selector).__name__][key] = []
+                scores[type(selector).__name__][key].append(score[key])
+    
+    return losses, scores
+        

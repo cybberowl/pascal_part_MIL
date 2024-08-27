@@ -67,3 +67,31 @@ def plot_examples_learning(X,true_mask, predicted_masks, k = 3, class_content = 
 
     plt.tight_layout()
     plt.show();
+
+
+def plot_loss(train_loss, val_loss, scores):
+    
+    epochs = len(train_loss)
+    assert len(train_loss) == len(val_loss)
+    ax = plt.subplot()
+    ax.plot(np.arange(1,epochs+1),train_loss, label = 'train')
+    ax.plot(np.arange(1,epochs+1),val_loss, label = 'train')
+    
+    ax.legend(loc = 'upper right')
+    ax.set_title('Loss and metrics')
+    
+    ax2 = ax.twinx()
+    ax2.grid(False)
+    second = False
+    
+    for selector_name in scores:
+        for lvl in scores[selector_name]:
+            ax2.plot(np.arange(1,epochs+1),
+                     scores[selector_name][lvl], label = lvl+ ' ' + selector_name, ls = '--' if second else '-')
+        second = True
+    
+    ax.set_xlabel('epoch')
+    ax.set_ylabel('loss')
+    ax2.legend(loc = 'lower right')
+    ax2.set_ylabel('mean IoU')
+    plt.show();
