@@ -1,4 +1,3 @@
-from tqdm.notebook import tqdm
 import torch
 import numpy as np
 import torch.nn as nn
@@ -12,7 +11,7 @@ def compute_weights(data, class_content, bg_class = 0):
 
     freqs = {i:0 for i in range(n_classes)}
 
-    for x_batch, y_batch in tqdm(data):
+    for x_batch, y_batch in data:
         for i in range(n_classes):
             freqs[i] += (y_batch.numpy() == i).sum()
     

@@ -1,8 +1,10 @@
 import torch
 
-def device_converter(tensor):
+# +
+# def device_converter(tensor):
 
-    return 'cpu' if tensor.get_device()<0 else 'cuda'
+#     return 'cpu' if tensor.get_device()<0 else 'cuda'
+# -
 
 def decompose_mask(mask:torch.Tensor,class_content):
     '''
@@ -11,7 +13,7 @@ def decompose_mask(mask:torch.Tensor,class_content):
     '''
     assert(mask.ndim == 3)
     res = []
-    device = device_converter(mask)
+    device = mask.device
     for level in sorted(class_content,key = lambda x: int(x.split('_')[1])):
         new_mask = mask.clone().to(device)
         counter = 1
@@ -30,7 +32,7 @@ def aggregate_probs(probs: torch.Tensor, class_content, bg_class = 0):
     probs is tensor BS x C x H x W
     '''
     
-    device = device_converter(probs)
+    device = probs.device
     res = []
 
     for level in sorted(class_content,key = lambda x: int(x.split('_')[1])):
