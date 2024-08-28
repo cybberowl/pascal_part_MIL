@@ -82,7 +82,7 @@ def plot_loss(train_loss, val_loss, scores):
     ax.set_title('Loss and metrics')
     
     ax2 = ax.twinx()
-    ax2.grid(False)
+    ax.grid(False)
     second = False
     
     for selector_name in scores:

@@ -26,8 +26,9 @@ def compute_weights(data, class_content, bg_class = 0):
         res[f'level_{i}'][counter] = 1/freqs[bg_class] ## bg_class
         for key, classes in class_content[f'level_{i}'].items():
             counter += 1
-            res[f'level_{i}'][counter] = 1/sum(freqs[c] for c in classes)    
-        res[f'level_{i}'] = np.array(list(res[f'level_{i}'].values()))
+            cnt = counter if len(classes) > 1 else classes[0]
+            res[f'level_{i}'][cnt] = 1/sum(freqs[c] for c in classes)  
+        res[f'level_{i}'] = np.array([res[f'level_{i}'][c] for c in range(len(class_content[f'level_{i}'])+1)])
         res[f'level_{i}'] = res[f'level_{i}']/res[f'level_{i}'].sum() 
         res[f'level_{i}'] = torch.Tensor(res[f'level_{i}']) 
 
