@@ -70,25 +70,30 @@ def plot_examples_learning(X,true_mask, predicted_masks, k = 3, class_content = 
     plt.show();
 
 
-def plot_loss(train_loss, val_loss, scores):
+def plot_loss(train_loss, val_loss, scores, **fill_kwargs):
     
     epochs = len(train_loss)
     assert len(train_loss) == len(val_loss)
-    ax = plt.subplot()
+    ax2 = plt.subplot()
+    ax = ax2.twinx()
+    
     ax.plot(np.arange(1,epochs+1),train_loss, label = 'train')
     ax.plot(np.arange(1,epochs+1),val_loss, label = 'train')
     
     ax.legend(loc = 'upper right')
     ax.set_title('Loss and metrics')
     
-    ax2 = ax.twinx()
     ax.grid(False)
     second = False
     
     for selector_name in scores:
-        for lvl in scores[selector_name]:
-            ax2.plot(np.arange(1,epochs+1),
-                     scores[selector_name][lvl], label = lvl+ ' ' + selector_name, ls = '--' if second else '-')
+        for lvl in scores[selector_name]['mean']:
+            ax2.plot(np.arange(1,epochs+1),scores[selector_name]['mean'][lvl], 
+                     label = lvl+ ' ' + selector_name, ls = '--' if second else '-')
+            ax2.fill_between(np.arange(1,epochs+1), 
+             np.array(scores[selector_name]['mean'][lvl]) - np.array(scores[selector_name]['std'][lvl]),
+            np.array(scores[selector_name]['mean'][lvl]) + np.array(scores[selector_name]['std'][lvl]),
+                            **fill_kwargs)
         second = True
     
     ax.set_xlabel('epoch')

@@ -63,7 +63,7 @@ def validate(model, ckpt_path, loss_fn, class_selectors, class_content, metric, 
     models = sorted(models, key = lambda x: int(x.name.split('.')[0].split('=')[1]))
     
     losses = []
-    scores = {type(selector).__name__:{} for selector in class_selectors}
+    scores = {type(selector).__name__:{'mean':{},'std':{}} for selector in class_selectors}
     for epoch, model_path in enumerate(models):
         
         clear_output(wait = True)
@@ -77,13 +77,18 @@ def validate(model, ckpt_path, loss_fn, class_selectors, class_content, metric, 
         print('epoch %d - loss: %f' % (epoch,loss))
         
         for selector in class_selectors:
-            score = score_model(model, selector, metric, data,device)['mean']
-            score = {key:score[key] for key in score if len(key.split('_')) == 2} ## only levels data
+            score = score_model(model, selector, metric, data,device)
+            score_mean = score['mean']
+            score_std = score['std']
+            score_mean = {key:score_mean[key] for key in score_mean if len(key.split('_')) == 2} ## only levels data
+            score_std = {key:score_std[key] for key in score_std if len(key.split('_')) == 2} ## only levels data
             
-            for key in score:
-                if key not in scores[type(selector).__name__]:
-                    scores[type(selector).__name__][key] = []
-                scores[type(selector).__name__][key].append(score[key])
+            for key in score_mean:
+                if key not in scores[type(selector).__name__]['mean']:
+                    scores[type(selector).__name__]['mean'][key] = []
+                    scores[type(selector).__name__]['std'][key] = []
+                scores[type(selector).__name__]['mean'][key].append(score_mean[key])
+                scores[type(selector).__name__]['std'][key].append(score_std[key])
     
     return losses, scores
-        
+
