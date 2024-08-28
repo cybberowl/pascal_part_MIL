@@ -66,7 +66,7 @@ class DiceLoss:
 
     def __call__(self,Y_pred,Y_true):
 
-        pred_mask = F.softmax(Y_pred)
+        pred_mask = F.softmax(Y_pred, dim = 1)
         n_classes = Y_pred.shape[1]
         res = 0.0
 
@@ -92,7 +92,7 @@ class FocalLoss:
 
     def __call__(self, Y_pred,Y_true):
 
-        probs = torch.clamp(F.softmax(Y_pred), self.smooth, 1.0-self.smooth)
+        probs = torch.clamp(F.softmax(Y_pred, dim = 1), self.smooth, 1.0-self.smooth)
         n_classes = Y_pred.shape[1]
         res = 0.0
 
