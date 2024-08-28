@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from .hierarchical_utils import decompose_mask
+import numpy as np
 
 def plot_examples(X,Y, k = 5, class_content = None, decomposed = False):
     # X and Y are batches from data gen BS x C x H x W

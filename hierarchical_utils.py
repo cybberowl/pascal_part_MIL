@@ -44,8 +44,9 @@ def aggregate_probs(probs: torch.Tensor, class_content, bg_class = 0):
         new_probs[:,idx,...] = probs[:,bg_class,...] ### here we use it
         for key, classes in class_content[level].items():
             idx += 1
+            idx_ = idx if len(classes)>1 else classes[0]
             for c in classes:
-                new_probs[:,idx,...] += probs[:,c,...]
+                new_probs[:,idx_,...] += probs[:,c,...]
         res.append(new_probs)
     return res
 
