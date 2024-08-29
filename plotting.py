@@ -78,7 +78,7 @@ def plot_loss(train_loss, val_loss, scores, **fill_kwargs):
     ax = ax2.twinx()
     
     ax.plot(np.arange(1,epochs+1),train_loss, label = 'train')
-    ax.plot(np.arange(1,epochs+1),val_loss, label = 'train')
+    ax.plot(np.arange(1,epochs+1),val_loss, label = 'val')
     
     ax.legend(loc = 'upper right')
     ax.set_title('Loss and metrics')
