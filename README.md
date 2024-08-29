@@ -60,7 +60,7 @@ body:
 + `loss.py` - содержит класс `HierarchicalLoss`, а также лоссы `DiceLoss`,`FocalLoss` с поддержкой весов классов. Также там лежит утилита подсчета весов классов как обратной частоты. Использует функции из `hierarchical_utils`
 + `metric.py` - реализация метрики `Mean Intersection over Union`
 + `nested_dict.py` - набор утилит для превращения словаря `classes_hierarchy` в `classes_content`. Содержит функцию для подсчета массива всех значений для каждого ключа вложенного словаря, функцию подсчета глубины ключа вложенного словаря, и главное преобразование `class_hierarchy -> class_content`
-+ `plotting.py` - вроде понятно
++ `plotting.py` - позволяет рисовать примеры картинок и их масок, а также рисовать лоссы и метрики. 
 + `selector.py` - реализация селекторов класса, использует функции из `hierarchical_utils`
 + `train.py`, `validate.py` - функции обучения модели и подсчета метрик (обновление среднего и std в онлайн-режиме)
 
@@ -75,7 +75,7 @@ body:
 
 # Формат экспериментов
 
-В [отдельную папку](https://drive.google.com/drive/folders/1lx91TTd8x-YcChli6SotbwYAtYLPG-7N?usp=sharing)  на Google Drive сохраняются чекпоинты моделей с отметкой названия эксперимента и времени его запуска. В этой папке с целью избежания путаницы также хранится конфиг следующего вида:
+В [отдельную папку](https://drive.google.com/drive/folders/1lx91TTd8x-YcChli6SotbwYAtYLPG-7N?usp=sharing) (UPD Colab не помог, папка пустая) на Google Drive сохраняются чекпоинты моделей с отметкой названия эксперимента и времени его запуска. В этой папке с целью избежания путаницы также хранится конфиг следующего вида:
 
 ```
 augmentations: null
@@ -102,4 +102,89 @@ resample: 2
 
 # Результаты
 
-TODO
+## Baseline 
+
+В качестве основы для сравнения выступит `SegNet` с `lr = 1e-4` на 80 эпох с лоссом `CrossEntropy` и следующими параметрами:
+
+```
+SegNet(in_channels=3,
+       out_channels=N_CLASSES,
+       encoder_channels_array = [64,128,256, 512],
+       decoder_channels_array = [256, 128, 64, 64],
+       pool_kernel_size = 2,
+       conv_kernel_size = 5,
+       block_depth = 3,
+       enable_batchnorm = True,
+       act_class = nn.ReLU)
+```
+По умолчанию `SegDataset` использует `resize` из `Pillow` с параметром ресемплинга `BILINEAR`. Получились следующие результаты:
+
+![image](https://github.com/user-attachments/assets/aadaf56f-60fb-454a-acbf-b1939648310b)
+
+Значение метрики mIoU составило 40%-24%-14% по разным уровням соответственно. При этом `SmartClassSelector` оказывается не таким уж умным и уступает по качеству `SimpleClassSelector`, при этом совпадая на 3 уровне - что и задумано по построению.
+
+## Smoothing
+
+Повторим эксперимент, но поменяем ресемплинг на `LANCZOS`. Получится значение метрики 44%-29%-20%. При тех же параметрах модель быстрее обучается, достигает лучших результатов и даже переобучается. Поэтому во всех следующих экспериментах будет производиться сглаживание `LANCZOS` при ресайзе картинок.
+
+![image](https://github.com/user-attachments/assets/714fdc8d-6d59-4509-9561-45b2c359cc39)
+
+## Augmentations
+
+Попробуем использовать следующие аугментации:
+
+```
+import albumentations as A
+
+augs = A.Compose([
+    A.RandomSizedCrop(min_max_height=(size[0]//2, size[0]//2), 
+        height=size[0], width=size[0], p=0.5,interpolation = INTER_LANCZOS4),
+    A.HorizontalFlip(p = 0.5),
+    A.VerticalFlip(p = 0.5),
+#     A.Rotate(limit = 15, p = 0.5),
+#     A.CLAHE(p=0.5),
+#     A.RandomBrightnessContrast(p=0.5),
+#     A.RandomGamma(p=0.5)
+])
+```
+
+Однако использование таких аугментаций заметно ухудшает качество модели до 37%-22%-15%, а также требует большего `lr = 1e-3` (в остальных экпериментах `lr = 1e-4`).
+
+![image](https://github.com/user-attachments/assets/e3248427-0051-4dc1-8ad0-09c13b3177d4)
+
+## Dice Loss
+
+Этот лосс дает плохие результаты. Интересной особенностью оказалось то, что много эпох подряд этот лосс не позволял модели предсказывать класс бэкграунда, что отражается постоянным участком на графике. К тому же это единственный случай, где предсказания двух селекторов классов совпадают.
+
+![image](https://github.com/user-attachments/assets/c29f9823-57f4-4903-91ea-225947023500)
+
+## Focal Loss
+
+Являясь лишь небольшой модификацией кросс-энтропии, этот лосс дает примерно такое же качество:
+
+![image](https://github.com/user-attachments/assets/0d4d14e3-c3b0-461b-8959-e41e32681293)
+
+## UNet 
+
+Теперь попробуем обучить `UNet` cо следующими параметрами:
+
+```
+UNet(in_channels = 3,
+             out_channels = N_CLASSES,
+             channels_array = [64, 128, 256, 512],
+             bottleneck_channels = 512,
+             pool_kernel_size = 2,
+             conv_kernel_size = 3,
+             block_depth = 3,
+             enable_batchnorm = True,
+             act_class = nn.ReLU)
+```
+
+Мы получим немного лучшие результаты на 3 уровне: 44%-29%-22.5%. Однако нет гарантии того, что так вышло из-за преимуществ архитектуры, а не из-за, скажем, разного числа весов в моделях.
+
+![image](https://github.com/user-attachments/assets/04468ca6-254c-466e-8906-3ee3c8e63a0b)
+
+
+
+
+
