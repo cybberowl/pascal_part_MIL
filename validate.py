@@ -57,14 +57,18 @@ def validate_epoch(model, loss_fn, data,device):
     return avg_loss
 
 
-def validate(model, ckpt_path, loss_fn, class_selectors, class_content, metric, data, device):
+def validate(model, ckpt_path, loss_fn, class_selectors, class_content, metric, data, device, every_n = 1):
     
     models = [p for p in Path(ckpt_path).iterdir() if p.name.endswith('.ckpt')]
     models = sorted(models, key = lambda x: int(x.name.split('.')[0].split('=')[1]))
     
     losses = []
     scores = {type(selector).__name__:{'mean':{},'std':{}} for selector in class_selectors}
-    for epoch, model_path in enumerate(models):
+    
+    epochs = len(models)
+    for epoch in range(every_n,epochs+1,every_n):
+        
+        model_path = models[epoch-1]
         
         clear_output(wait = True)
         

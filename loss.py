@@ -65,6 +65,9 @@ class DiceLoss:
         self.weight = weight 
 
     def __call__(self,Y_pred,Y_true):
+        
+        ### Y_pred is BS x C x W x H
+        ### Y_true is BS x W x H
 
         pred_mask = F.softmax(Y_pred, dim = 1)
         n_classes = Y_pred.shape[1]
@@ -75,7 +78,7 @@ class DiceLoss:
             y_true = (Y_true == i).int()
             num = 2* (y_true*pred_mask[:,i,...]).sum((1,2)) ## sum over WxH dimensions
             den = y_true.sum((1,2)) + pred_mask[:,i,...].sum((1,2))
-            value = 1 - ((num + self.smooth) / (den + self.smooth )) / self.size[0]*self.size[1]
+            value = 1 - (num / (den + self.smooth )) / self.size[0]*self.size[1]
             if self.weight is not None:
                 value = value*self.weight[i]
             res += value.mean()
